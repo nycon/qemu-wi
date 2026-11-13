@@ -5,9 +5,12 @@
 | File | Purpose |
 |---|---|
 | `/etc/qemu-interface/secrets` | Generated secrets (JWT, DB password, agent token, admin password) |
-| `/opt/qemu-interface/.env` | Backend environment variables |
+| `/opt/qemu-interface/backend/.env` | Backend environment variables (installer-managed) |
+| `/opt/qemu-interface/host-agent/.env` | Host Agent environment (token, paths) |
 | `/opt/qemu-interface/docker-compose.override.yml` | Docker Compose overrides (generated) |
-| `/opt/qemu-interface/deploy/nginx/nginx.conf` | Nginx configuration (generated) |
+| `/etc/qemu-interface/nginx-platform.conf` | SSL/platform Nginx vhost (not in git) |
+| `/opt/qemu-interface/deploy/nginx/nginx.conf` | Base Nginx config (pull-safe) |
+| `/opt/qemu-interface/config/ssl.json` | Panel SSL domain status (local, not in git) |
 | `/etc/qemu-interface/egress-rules.json` | VM egress filtering rules |
 | `/etc/qemu-interface/agent-cert.pem` | Host agent TLS certificate |
 | `/etc/qemu-interface/agent-key.pem` | Host agent TLS private key |
@@ -28,7 +31,7 @@ These are generated on first install and reused on subsequent runs.
 
 ## Backend Environment (.env)
 
-Location: `/opt/qemu-interface/.env`
+Location: `/opt/qemu-interface/backend/.env`
 
 ```bash
 # Database
@@ -47,7 +50,26 @@ HOST_AGENT_TOKEN=${AGENT_TOKEN}
 
 # Storage
 DEFAULT_STORAGE_POOL_PATH=/var/lib/qemu-interface/storage
+
+# Panel domain / CORS (locked to SSL domain by installer when cert exists)
+PANEL_DOMAIN=panel.example.com
+CORS_ORIGINS=["https://panel.example.com"]
+ALLOWED_HOSTS=["panel.example.com","localhost","127.0.0.1"]
+ALLOW_PUBLIC_REGISTRATION=false
+EXPOSE_API_DOCS=false
+
+# SMTP (optional — also editable in Settings UI)
+SMTP_ENABLED=false
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM_EMAIL=
+SMTP_FROM_NAME=QEMU Interface
+SMTP_USE_TLS=true
 ```
+
+`SMTP_FROM_EMAIL` is the platform **sender**. Per-tenant alert inboxes are stored in the DB (`notification_email`), not in this file.
 
 ## Docker Compose Override
 

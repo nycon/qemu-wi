@@ -263,6 +263,32 @@ sleep 30
 docker compose exec -T -e ADMIN_PASSWORD="Admin123!" backend python -m scripts.seed
 ```
 
+### Networks page empty / cannot create a VM with a public IP
+
+**Symptom**: Tenant **Networks** shows no NAT/Internal nets; create VM has few or no IPs.
+
+**Cause** (by design):
+- The panel does **not** auto-create a default NAT network for new tenants.
+- Public addresses appear only after a superadmin assigns concrete reserved IPs (**Admin → Tenants** or `qemu-cli tenant assign-public-ips`).
+
+**Fix**:
+1. Superadmin: **Admin → Public IPs** (external pool) → assign IPs under **Admin → Tenants**.
+2. Tenant admin: **Networks → Create** a NAT or Internal network if private networking is needed.
+3. On VM create, pick one assigned public IP from the dropdown (or a NAT/Internal pool).
+
+### Live metrics show N/A / guest agent missing
+
+**Symptom**: CPU/RAM stats stay empty on a Linux cloud VM.
+
+**Cause**: qemu-guest-agent not running inside the guest (older VMs created before auto-install).
+
+**Fix** (VNC console):
+```bash
+sudo apt-get update && sudo apt-get install -y qemu-guest-agent
+sudo systemctl enable --now qemu-guest-agent
+```
+New Linux cloud-image VMs install the agent automatically via cloud-init.
+
 ### SSH session drops after idle / reconnect hangs briefly
 
 **Symptom**: After idle time SSH disconnects; VM still runs in the panel; reconnect is slow or fails.

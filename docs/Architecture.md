@@ -111,10 +111,13 @@ Frontend → Backend API → Creates DB record → Celery Task → Host Agent
                                            ▼
                                     1. Clone disk image
                                     2. Create cloud-init seed
+                                       (incl. qemu-guest-agent on Linux)
                                     3. Define libvirt domain
                                     4. Start VM
                                     5. Return VNC port
 ```
+
+IP selection: `ip_pool_id` plus optional `ip_allocation_id` for a reserved public address.
 
 ### VNC Console
 ```

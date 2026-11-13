@@ -75,6 +75,8 @@ DELETE /tenants/{tid}/vms/{vm_id}            → Delete VM
   "name": "my-vm",
   "project_id": "uuid",
   "template_id": "uuid",
+  "ip_pool_id": "uuid",
+  "ip_allocation_id": "uuid",
   "vcpus": 2,
   "ram_mb": 2048,
   "disk_size_gb": 20,
@@ -93,6 +95,8 @@ DELETE /tenants/{tid}/vms/{vm_id}            → Delete VM
 }
 ```
 
+`ip_pool_id` is required (NAT/Internal pool or public pool). For a reserved public IP, also pass `ip_allocation_id` (from `GET /tenants/{tid}/public-ips`). Linux cloud images always get `qemu-guest-agent` via cloud-init — do not list it under `packages`.
+
 ### Lifecycle Actions
 ```
 POST /tenants/{tid}/vms/{id}/action
@@ -101,7 +105,7 @@ Body: { "action": "start" | "stop" | "reboot" | "force_stop" }
 
 ### Console
 ```
-GET /tenants/{tid}/vms/{id}/console-token → { "token": "jwt...", "ws_url": "wss://..." }
+POST /tenants/{tid}/vms/{id}/console → { "token": "jwt...", "ws_url": "wss://..." }
 ```
 
 ### Snapshots

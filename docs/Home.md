@@ -54,7 +54,7 @@ sudo bash install.sh
 - **Settings** – Tenant notification email (superadmin: all tenants), per-user notification toggles, SMTP/SSL/diagnostics (account security is on User Profile, not duplicated here)
 - **Multi-Tenant RBAC** – Tenants (optional tenant admin on create/edit), optional projects (folders; most tenants only need auto-created Default), roles (superadmin, admin, user, read-only)
 - **Networking** – Tenant self-service NAT/Internal (optional auto CIDR, editable DHCP; no auto default NAT); superadmin assigns concrete public IPs; Admin **Public IPs** = external pools only; VM create picks one public IP without showing the pool CIDR; port forwarding (**NAT only**)
-- **Notifications** – Tenant notification email + per-user toggles; SMTP From is the platform sender
+- **Notifications** – Tenant notification email + per-user toggles; SMTP **From** is the platform sender (not the tenant inbox)
 - **Storage** – Multiple storage pools (tenant-assignable), cloud image management, disk hotplug ([Cloud Images guide](Cloud-Images.md))
 - **Reverse Proxy** – Nginx-based reverse proxy with automatic SSL via Let's Encrypt
 - **Load Balancer** – TCP/HTTP load balancing across VMs (Round Robin, Least Conn, IP Hash); one public VIP + NAT backends
@@ -62,6 +62,6 @@ sudo bash install.sh
 - **Security** – Egress filtering (anti-portscan), 2FA (TOTP), httpOnly JWT cookies, API keys, Host Agent lockdown, audit logging; UI hides MAC/bridge/VNC/raw netplan from non-superadmins
 - **VM Templates** – Predefined configurations for quick VM deployment
 - **SSL/TLS** – Automatic Let's Encrypt or custom certificate support
-- **Monitoring** – Real-time VM stats (CPU, RAM, disk, network I/O)
+- **Monitoring** – Real-time VM stats (CPU, RAM, disk, network I/O) via qemu-guest-agent
 - **Task System** – Async task execution with progress tracking
-- **Notifications** – SMTP email notifications for events
+- **CLI** – [`qemu-cli`](CLI.md) (≥ 1.1.0) for VMs, tenant networks, public IPs, and admin IP assignment

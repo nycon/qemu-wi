@@ -316,7 +316,7 @@ The installer automatically detects your network setup and offers the best confi
 
 ### Update
 
-Nach `git pull` reicht der gleiche Installer erneut – er ist idempotent und behält Secrets/DB/VMs:
+After `git pull`, re-run the same installer — it is idempotent and keeps secrets, DB, and VMs:
 
 ```bash
 cd /opt/qemu-interface
@@ -324,14 +324,14 @@ git pull origin main
 sudo bash install.sh
 ```
 
-Optional kürzer nur Rebuild/Restart (ohne alle Phasen):
+Shorter rebuild/restart only (skips full phase walk):
 
 ```bash
 sudo bash install.sh --update
 ```
 
-SSL-vHosts liegen unter `/etc/qemu-interface/nginx-platform.conf` (nicht in Git).
-`deploy/nginx/nginx.conf` bleibt pull-sicher.
+SSL vhosts live under `/etc/qemu-interface/nginx-platform.conf` (not in git).
+`deploy/nginx/nginx.conf` stays pull-safe.
 
 ### Manual Installation
 
@@ -455,9 +455,10 @@ cat /var/log/qemu-interface-install.log
 
 ## CLI Tool
 
-The official CLI lives in a separate repository: [`nycon/qemu-cli`](https://github.com/nycon/qemu-cli).
+The official CLI lives in a separate repository: [`nycon/qemu-cli`](https://github.com/nycon/qemu-cli) (**≥ 1.1.0** for networks / public IPs). API keys: **User Profile → API Keys**.
 
 ```bash
+# Prebuilt: https://github.com/nycon/qemu-cli/releases
 git clone https://github.com/nycon/qemu-cli.git
 cd qemu-cli && make install
 
@@ -465,11 +466,14 @@ qemu-cli context create production \
   --url https://panel.example.com \
   --token qi_your_api_key
 
+qemu-cli tenant use Default
+qemu-cli network create web-dmz --type nat
+qemu-cli tenant public-ips
+qemu-cli vm create web1 --image "Ubuntu 24.04" --project <uuid> --public-ip 159.69.172.28 --random-password
 qemu-cli vm list
-qemu-cli vm start my-webserver
 ```
 
-See the [qemu-cli README](https://github.com/nycon/qemu-cli#readme) for full documentation.
+Details: [`docs/CLI.md`](docs/CLI.md) and the [qemu-cli README](https://github.com/nycon/qemu-cli#readme).
 
 ## Project Structure
 
@@ -607,7 +611,7 @@ qemu-interface/
 | `PATCH/DELETE /api/v1/tenants/{id}/networks/{pool_id}` | Edit / delete tenant network |
 | `GET /api/v1/tenants/{id}/public-ips` | Public IPs assigned to this tenant |
 | `PATCH /api/v1/tenants/{id}/notification-email` | Set tenant notification inbox |
-| `POST /api/v1/port-forwarding` | Create port-forwarding rule |
+| `POST /api/v1/port-forwards` | Create port-forwarding rule |
 | `GET /api/v1/storage-pools` | Manage storage pools |
 | `GET /api/v1/cloud-images` | Manage cloud images |
 | `POST /api/v1/cloud-images/upload` | Upload cloud image |

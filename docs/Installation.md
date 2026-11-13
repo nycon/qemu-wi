@@ -52,7 +52,7 @@ The installer runs through these phases:
 | 6b | Nginx Config | Generates Nginx config (HTTP or HTTPS based on certificates) |
 | 7 | Docker Build | Builds and starts all containers |
 | 8 | Host Agent | Installs Python venv, systemd service, TLS certificates |
-| 9 | libvirt | Configures storage pools, bridges, default NAT network |
+| 9 | libvirt | Configures storage pools / bridges; ensures host libvirt networking is ready (panel tenants still create NAT/Internal themselves — no auto tenant NAT) |
 | 10 | Database | Waits for backend, runs migrations, seeds admin user |
 | 11 | Verify | Health checks for all services |
 | 12 | Bridge Check | Checks for `br0` bridge (optional, for public IPs) |
