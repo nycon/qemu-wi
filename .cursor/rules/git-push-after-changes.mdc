@@ -1,0 +1,14 @@
+---
+description: Commit and push to GitHub after every code change in this repo
+alwaysApply: true
+---
+
+# Git: Push after every change
+
+After making any code or script changes in this repository:
+
+1. Commit with a concise message (focus on why).
+2. Push to `origin/main` immediately — do not wait for the user to ask.
+3. Only skip push if the user explicitly said not to commit/push in that turn.
+
+Do not leave completed work only on the local machine.

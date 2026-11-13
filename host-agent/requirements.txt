@@ -1,0 +1,11 @@
+# Host Agent Dependencies
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pyyaml==6.0.2
+libvirt-python==10.10.0
+httpx==0.28.1
+pydantic==2.10.4
+pydantic-settings==2.7.1
+structlog==24.4.0
+psutil==6.1.1
+python-jose[cryptography]==3.3.0

@@ -1,0 +1,145 @@
+# QEMU Interface – Docker Compose
+#
+# WARNING: These defaults are for local/lab use only.
+# Do NOT expose this stack to the public internet with placeholder secrets
+# (change-me-*, POSTGRES_PASSWORD=qemu).
+#
+# Production: use `sudo bash install.sh` which generates secrets and writes
+# docker-compose.override.yml (gitignored).
+
+services:
+  # --- PostgreSQL ---
+  postgres:
+    image: postgres:16-alpine
+    container_name: qemu-interface-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qemu
+      POSTGRES_PASSWORD: qemu
+      POSTGRES_DB: qemu_interface
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Port NOT exposed to host – only reachable within Docker network
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qemu -d qemu_interface"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Redis ---
+  redis:
+    image: redis:7-alpine
+    container_name: qemu-interface-redis
+    restart: unless-stopped
+    # Port NOT exposed to host – only reachable within Docker network
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- Backend API ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: qemu-interface-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://qemu:qemu@postgres:5432/qemu_interface
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-jwt-secret}
+      HOST_AGENT_URL: https://host.docker.internal:8443
+      HOST_AGENT_TOKEN: ${HOST_AGENT_TOKEN:-change-me-agent-token}
+      DEBUG: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - /var/lib/qemu-interface/images:/var/lib/qemu-interface/images
+      - /var/lib/qemu-interface/cloud-init:/var/lib/qemu-interface/cloud-init
+      - /var/lib/qemu-interface/storage:/var/lib/qemu-interface/storage
+      - /opt/qemu-interface/logs:/app/logs
+      - /etc/qemu-interface/agent-cert.pem:/app/agent-ca.pem:ro
+
+  # --- Celery Worker ---
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: qemu-interface-worker
+    restart: unless-stopped
+    command: celery -A app.workers.celery_app worker -B -l info -Q vm_operations,storage_operations,celery -c 4
+    environment:
+      DATABASE_URL: postgresql+asyncpg://qemu:qemu@postgres:5432/qemu_interface
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-jwt-secret}
+      HOST_AGENT_URL: https://host.docker.internal:8443
+      HOST_AGENT_TOKEN: ${HOST_AGENT_TOKEN:-change-me-agent-token}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - /var/lib/qemu-interface/images:/var/lib/qemu-interface/images
+      - /var/lib/qemu-interface/cloud-init:/var/lib/qemu-interface/cloud-init
+      - /var/lib/qemu-interface/storage:/var/lib/qemu-interface/storage
+      - /etc/qemu-interface/agent-cert.pem:/app/agent-ca.pem:ro
+
+  # --- Frontend ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: qemu-interface-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - backend
+
+  # --- Nginx Reverse Proxy ---
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: qemu-interface-proxy
+    restart: unless-stopped
+    # 80/443: panel + reverse-proxy; 8080-8090: HTTP/TCP load balancers
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080-8090:8080-8090"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/qemu-interface/nginx-platform.conf:/etc/qemu-interface/nginx-platform.conf:ro
+      - ./deploy/nginx/certs:/etc/nginx/certs:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt
+      - /var/lib/qemu-interface/proxy-configs:/etc/nginx/proxy-configs:ro
+      - /var/lib/qemu-interface/lb-configs:/etc/nginx/lb-configs:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  postgres_data:

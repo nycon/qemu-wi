@@ -1,0 +1,26 @@
+[Unit]
+Description=QEMU Interface Host Agent
+After=network-online.target libvirtd.service
+Wants=network-online.target
+Requires=libvirtd.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/qemu-interface/host-agent
+# Bind localhost only when possible. Production install.sh may use 0.0.0.0 for
+# Docker host-gateway and relies on qemu-interface-agent-firewall.service to
+# drop public ingress on 8443.
+ExecStart=/opt/qemu-interface/venv/bin/uvicorn agent.main:app --host 127.0.0.1 --port 8443 --ssl-keyfile /etc/qemu-interface/agent-key.pem --ssl-certfile /etc/qemu-interface/agent-cert.pem
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+
+# Security hardening
+ProtectSystem=strict
+ReadWritePaths=/var/lib/qemu-interface
+NoNewPrivileges=no
+
+[Install]
+WantedBy=multi-user.target

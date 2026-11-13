@@ -1,0 +1,26 @@
+site_name: QEMU Interface Docs
+site_description: Documentation for QEMU Interface
+site_url: https://nycon.github.io/qemu-wi/
+repo_url: https://github.com/nycon/qemu-wi
+repo_name: nycon/qemu-wi
+
+theme:
+  name: readthedocs
+
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - Overview: Home.md
+  - Architecture: Architecture.md
+  - Installation: Installation.md
+  - Configuration: Configuration.md
+  - Backups: Backups.md
+  - Cloud Images: Cloud-Images.md
+  - Hetzner Dedicated Bridging: Hetzner-Dedicated-Bridging.md
+  - CLI: CLI.md
+  - API Reference: API-Reference.md
+  - Host Agent: Host-Agent.md
+  - Security: Security.md
+  - Troubleshooting: Troubleshooting.md
+  - Development: Development.md

@@ -1,0 +1,13 @@
+[Unit]
+Description=QEMU Interface Host Agent port lockdown (8443)
+After=network-online.target
+Wants=network-online.target
+Before=qemu-interface-agent.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/qemu-interface/scripts/lock-agent-port.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
