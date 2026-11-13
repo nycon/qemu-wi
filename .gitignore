@@ -54,6 +54,9 @@ deploy/nginx/certs/
 htmlcov/
 .pytest_cache/
 
+# Local QA helpers (not published)
+scripts/qa_*.py
+
 # MkDocs build output
 site/
 
