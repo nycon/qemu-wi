@@ -7,7 +7,7 @@ alwaysApply: true
 
 After making any code or script changes in this repository:
 
-1. Commit with a concise message (focus on why).
+1. Commit with a concise message (focus on why), **authored only as nycon** (see `commits-as-nycon.mdc` — no Cursor co-author).
 2. Push to `origin/main` immediately — do not wait for the user to ask.
 3. Only skip push if the user explicitly said not to commit/push in that turn.
 
