@@ -22,7 +22,8 @@ frontend/.vite/
 .env.local
 .env.production
 
-# IDE
+# IDE / local agent rules (not published)
+.cursor/
 .vscode/
 .idea/
 *.swp
