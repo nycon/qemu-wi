@@ -2,7 +2,8 @@
 
 Official docs for the open-source QEMU/KVM management panel.
 
-**Repo:** [nycon/qemu-wi](https://github.com/nycon/qemu-wi)
+**Repo:** [nycon/qemu-wi](https://github.com/nycon/qemu-wi)  
+**Wiki:** https://github.com/nycon/qemu-wi/wiki
 
 ## Start here
 

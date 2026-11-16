@@ -19,7 +19,7 @@ A complete web-based management platform for QEMU/KVM virtual machines with mult
 | [Troubleshooting](Troubleshooting.md) | Common errors and solutions |
 | [Development](Development.md) | Development setup, code structure, contributing |
 
-Docs live in this repo under `docs/` (MkDocs). GitHub Actions / Pages deploy is disabled.
+Published as GitHub Wiki: https://github.com/nycon/qemu-wi/wiki — source markdown also lives in this repo under `docs/`.
 
 ## Quick Start
 

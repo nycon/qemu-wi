@@ -710,24 +710,24 @@ curl -H "X-API-Key: qi_abc123..." \
 
 ## Documentation
 
-- Source markdown: [`docs/`](docs/Home.md) (also buildable locally with `mkdocs serve`)
-- **Docs**: Source lives under `docs/` (MkDocs). GitHub Actions are disabled for this repository.
+- **Wiki (recommended):** https://github.com/nycon/qemu-wi/wiki  
+- Source markdown in-repo: [`docs/`](docs/Home.md) (also buildable locally with `mkdocs serve`)
 
 | Doc | Description |
 |-----|-------------|
-| [Home](docs/Home.md) | Overview and feature list |
-| [Architecture](docs/Architecture.md) | System diagram, components, data flow |
-| [Installation](docs/Installation.md) | Detailed installation guide |
-| [Configuration](docs/Configuration.md) | Config files, env vars, ports |
-| [Backups](docs/Backups.md) | Live VM backups, FTP/S3, DB dumps, schedules |
-| [Cloud Images](docs/Cloud-Images.md) | Ubuntu/Debian download URLs and import steps |
-| [Hetzner Dedicated Bridging](docs/Hetzner-Dedicated-Bridging.md) | Public bridging / vSwitch setup |
-| [API Reference](docs/API-Reference.md) | REST API documentation |
-| [Host Agent](docs/Host-Agent.md) | Agent API and management |
-| [Security](docs/Security.md) | Firewall, egress filtering, hardening |
-| [Troubleshooting](docs/Troubleshooting.md) | Common errors and solutions |
-| [Development](docs/Development.md) | Local setup, code structure, patterns |
-| [CLI](docs/CLI.md) | `qemu-cli` usage |
+| [Home](https://github.com/nycon/qemu-wi/wiki/Home) | Overview and feature list |
+| [Architecture](https://github.com/nycon/qemu-wi/wiki/Architecture) | System diagram, components, data flow |
+| [Installation](https://github.com/nycon/qemu-wi/wiki/Installation) | Detailed installation guide |
+| [Configuration](https://github.com/nycon/qemu-wi/wiki/Configuration) | Config files, env vars, ports |
+| [Backups](https://github.com/nycon/qemu-wi/wiki/Backups) | Live VM backups, FTP/S3, DB dumps, schedules |
+| [Cloud Images](https://github.com/nycon/qemu-wi/wiki/Cloud-Images) | Ubuntu/Debian download URLs and import steps |
+| [Hetzner Dedicated Bridging](https://github.com/nycon/qemu-wi/wiki/Hetzner-Dedicated-Bridging) | Public bridging / vSwitch setup |
+| [API Reference](https://github.com/nycon/qemu-wi/wiki/API-Reference) | REST API documentation |
+| [Host Agent](https://github.com/nycon/qemu-wi/wiki/Host-Agent) | Agent API and management |
+| [Security](https://github.com/nycon/qemu-wi/wiki/Security) | Firewall, egress filtering, hardening |
+| [Troubleshooting](https://github.com/nycon/qemu-wi/wiki/Troubleshooting) | Common errors and solutions |
+| [Development](https://github.com/nycon/qemu-wi/wiki/Development) | Local setup, code structure, patterns |
+| [CLI](https://github.com/nycon/qemu-wi/wiki/CLI) | `qemu-cli` usage |
 
 ## Security reports
 
