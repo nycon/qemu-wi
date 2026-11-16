@@ -85,7 +85,7 @@ A modern, open-source virtualization web panel for managing **QEMU/KVM Virtual M
 - **Scheduled Backups**: Automatic daily/weekly/monthly backups with retention (live backups for running VMs); schedule times use **local wall-clock** in the UI (stored as UTC)
 - **VM Import/Export**: Export VMs as standalone compressed qcow2, import existing disk images with upload
 - **Disk Management**: Create additional data disks, hot-attach/detach on running VMs, resize (grow only), delete
-- **HTML5 Console**: Browser-based VNC access to VMs
+- **HTML5 Console**: VNC in a separate browser popup (movable independently of the panel)
 - **Live Metrics**: Real-time CPU, RAM, Disk I/O, and Network per VM (via qemu-guest-agent)
 
 ### Networking

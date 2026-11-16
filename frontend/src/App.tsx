@@ -68,6 +68,9 @@ export default function App() {
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
 
+          {/* Console popup — no sidebar/topbar so the window is independent of the panel */}
+          <Route path="/vms/:vmId/console" element={<ConsolePage />} />
+
           {/* Protected routes */}
           <Route element={<AppLayout />}>
             <Route path="/" element={<DashboardPage />} />
@@ -75,7 +78,6 @@ export default function App() {
             <Route path="/vms/create" element={<VMCreatePage />} />
             <Route path="/vms/import" element={<VMImportPage />} />
             <Route path="/vms/:vmId" element={<VMDetailPage />} />
-            <Route path="/vms/:vmId/console" element={<ConsolePage />} />
             <Route path="/tasks" element={<TasksPage />} />
             {/* Admin pages */}
             <Route path="/projects" element={<ProjectsPage />} />

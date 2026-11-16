@@ -47,7 +47,7 @@ sudo bash install.sh
 ## Feature Overview
 
 - **VM Management** – Create, start, stop, reboot, delete, resize, clone, export/import
-- **VNC Console** – Browser-based console via noVNC WebSocket proxy
+- **VNC Console** – Opens in a separate browser popup (movable independently of the panel) via noVNC WebSocket
 - **Snapshots & Backups** – Snapshots; **live** full-disk backups (running or stopped); restore when stopped; schedules + retention (local wall-clock times); Local/FTP/S3 storage; superadmin inventory delete; DB dumps ([Backups](Backups.md))
 - **Cloud-Init** – Automatic VM configuration (users, SSH keys, packages, network); **qemu-guest-agent** always installed on Linux cloud images; ISO install also supported; profile SSH keys via dropdown on create
 - **User Profile** – TopBar `/profile`: name, email, password, **2FA (TOTP)**, **API keys** (role-scoped), **Fernet-encrypted SSH public keys**

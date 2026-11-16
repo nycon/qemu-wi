@@ -79,9 +79,15 @@ deactivate
 systemctl restart qemu-interface-agent
 ```
 
+### VNC Console popup blocked
+
+**Symptom**: Clicking Console does nothing or shows “Popup blocked”.
+
+**Fix**: Allow popups for the panel domain in the browser. The console opens in a separate window so you can move it independently of the panel.
+
 ### VNC Console not working
 
-**Symptom**: Console page shows error or blank screen
+**Symptom**: Console window shows error or blank screen
 
 **Checks**:
 ```bash

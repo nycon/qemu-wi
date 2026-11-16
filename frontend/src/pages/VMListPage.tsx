@@ -17,6 +17,7 @@ import toast from 'react-hot-toast';
 import { useTenantStore } from '@/store/tenantStore';
 import { projectApi, vmApi } from '@/services/api';
 import type { Project, VirtualMachine, VMStatus } from '@/types';
+import { openConsoleWindow } from '@/lib/openConsoleWindow';
 
 const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
   running: { label: 'Running', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400', dot: 'bg-green-500' },
@@ -273,9 +274,19 @@ export function VMListPage() {
                             </Menu.Item>
                             <Menu.Item>
                               {({ active }) => (
-                                <Link to={`/vms/${vm.id}`} className={clsx(active && 'bg-gray-100 dark:bg-gray-700', 'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 dark:text-gray-200')}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const win = openConsoleWindow(vm.id, {
+                                      tenantId: currentTenant?.id,
+                                      name: vm.name,
+                                    });
+                                    if (!win) toast.error('Popup blocked — allow popups for this site to open the console');
+                                  }}
+                                  className={clsx(active && 'bg-gray-100 dark:bg-gray-700', 'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-700 dark:text-gray-200')}
+                                >
                                   <ComputerDesktopIcon className="h-4 w-4 text-primary-500" /> Console
-                                </Link>
+                                </button>
                               )}
                             </Menu.Item>
                           </>
