@@ -51,22 +51,29 @@ const refreshClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-let refreshInFlight: Promise<string> | null = null;
+let refreshInFlight: Promise<TokenResponse> | null = null;
 
-async function refreshAccessToken(): Promise<string> {
+/** Single-flight refresh — critical with rotating refresh cookies (popup + AppInit). */
+async function refreshSession(): Promise<TokenResponse> {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
     // Refresh token is read from httpOnly cookie by the backend
     const { data } = await refreshClient.post<TokenResponse>('/auth/refresh', {});
     if (data.access_token) {
       setAccessToken(data.access_token);
-      return data.access_token;
+      return data;
     }
     throw new Error('No access token from refresh');
   })().finally(() => {
     refreshInFlight = null;
   });
   return refreshInFlight;
+}
+
+async function refreshAccessToken(): Promise<string> {
+  const data = await refreshSession();
+  if (!data.access_token) throw new Error('No access token from refresh');
+  return data.access_token;
 }
 
 // Request interceptor: attach in-memory JWT when available (cookies still sent)
@@ -121,8 +128,7 @@ export const authApi = {
   register: (data: { email: string; username: string; password: string; full_name?: string }) =>
     api.post<User>('/auth/register', data).then((r) => r.data),
   me: () => api.get<User>('/auth/me').then((r) => r.data),
-  refresh: () =>
-    refreshClient.post<TokenResponse>('/auth/refresh', {}).then((r) => r.data),
+  refresh: () => refreshSession(),
   logout: () =>
     api.post('/auth/logout', {}).then((r) => r.data),
   changePassword: (data: { current_password: string; new_password: string }) =>

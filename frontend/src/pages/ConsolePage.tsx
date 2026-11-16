@@ -22,11 +22,16 @@ export function ConsolePage() {
   const tenantFromQuery = searchParams.get('tenant') || '';
   const nameFromQuery = searchParams.get('name') || '';
 
-  const { isAuthenticated, isLoading: authLoading, loadUser } = useAuthStore();
-  const { currentTenant, loadTenants, tenants, setCurrentTenant } = useTenantStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const loadUser = useAuthStore((s) => s.loadUser);
+  const { loadTenants, tenants, setCurrentTenant } = useTenantStore();
 
-  const canvasRef = useRef<HTMLDivElement>(null);
+  // Separate React shell from noVNC target (avoids DOM fights that blank the UI)
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const vncTargetRef = useRef<HTMLDivElement | null>(null);
   const rfbRef = useRef<InstanceType<typeof import('@novnc/novnc/lib/rfb').default> | null>(null);
+  const connectingRef = useRef(false);
+
   const [bootstrapped, setBootstrapped] = useState(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>('connecting');
   const [vmName, setVmName] = useState<string>(nameFromQuery);
@@ -35,12 +40,34 @@ export function ConsolePage() {
   const [error, setError] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string>(tenantFromQuery);
 
-  // Auth + tenant bootstrap (popup has its own JS heap; refresh via httpOnly cookie)
+  useEffect(() => {
+    if (wrapperRef.current && !vncTargetRef.current) {
+      const el = document.createElement('div');
+      el.style.width = '100%';
+      el.style.height = '100%';
+      el.style.overflow = 'hidden';
+      wrapperRef.current.appendChild(el);
+      vncTargetRef.current = el;
+    }
+    return () => {
+      if (vncTargetRef.current?.parentNode) {
+        try {
+          vncTargetRef.current.parentNode.removeChild(vncTargetRef.current);
+        } catch {
+          /* ignore */
+        }
+      }
+      vncTargetRef.current = null;
+    };
+  }, [bootstrapped, isAuthenticated]);
+
+  // One bootstrap path (shared refreshSession dedupes AppInit + this page)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         await loadUser();
+        if (cancelled) return;
         await loadTenants();
       } finally {
         if (!cancelled) setBootstrapped(true);
@@ -56,18 +83,18 @@ export function ConsolePage() {
     if (tenantFromQuery) {
       const match = tenants.find((t) => t.id === tenantFromQuery);
       if (match) {
+        if (tenantId !== match.id) setTenantId(match.id);
         setCurrentTenant(match);
-        setTenantId(match.id);
         return;
       }
     }
-    if (currentTenant) {
-      setTenantId(currentTenant.id);
-    } else if (tenants[0]) {
-      setCurrentTenant(tenants[0]);
-      setTenantId(tenants[0].id);
+    const stored = localStorage.getItem('current_tenant_id');
+    const fallback = tenants.find((t) => t.id === stored) ?? tenants[0];
+    if (fallback) {
+      if (tenantId !== fallback.id) setTenantId(fallback.id);
+      setCurrentTenant(fallback);
     }
-  }, [bootstrapped, tenants, tenantFromQuery, currentTenant, setCurrentTenant]);
+  }, [bootstrapped, tenants, tenantFromQuery, tenantId, setCurrentTenant]);
 
   useEffect(() => {
     if (!tenantId || !vmId) return;
@@ -83,12 +110,22 @@ export function ConsolePage() {
   }, [tenantId, vmId, nameFromQuery]);
 
   const connectVNC = useCallback(async () => {
-    if (!tenantId || !vmId || !canvasRef.current) return;
+    const target = vncTargetRef.current;
+    if (!tenantId || !vmId || !target || connectingRef.current) return;
 
+    connectingRef.current = true;
     setConnectionState('connecting');
     setError(null);
 
     try {
+      // Wait until the popup has a real layout size (Firefox popups often start at 0×0)
+      for (let i = 0; i < 40; i++) {
+        const w = target.clientWidth;
+        const h = target.clientHeight;
+        if (w >= 64 && h >= 64) break;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+
       const consoleData = await vmApi.getConsoleToken(tenantId, vmId);
       const { default: RFB } = await import('@novnc/novnc/lib/rfb');
 
@@ -100,25 +137,39 @@ export function ConsolePage() {
           : `${wsProtocol}//${window.location.host}${websocketPath.startsWith('/') ? '' : '/'}${websocketPath}`;
 
       if (rfbRef.current) {
-        rfbRef.current.disconnect();
+        try {
+          rfbRef.current.disconnect();
+        } catch {
+          /* ignore */
+        }
         rfbRef.current = null;
       }
 
-      while (canvasRef.current.firstChild) {
-        canvasRef.current.removeChild(canvasRef.current.firstChild);
+      while (target.firstChild) {
+        target.removeChild(target.firstChild);
       }
 
-      const rfb = new RFB(canvasRef.current, wsUrl, {
+      const rfb = new RFB(target, wsUrl, {
         wsProtocols: ['binary'],
       });
 
       rfb.scaleViewport = true;
-      rfb.resizeSession = true;
+      rfb.resizeSession = false;
       rfb.focusOnClick = true;
 
-      rfb.addEventListener('connect', () => setConnectionState('connected'));
+      rfb.addEventListener('connect', () => {
+        setConnectionState('connected');
+        connectingRef.current = false;
+        try {
+          window.dispatchEvent(new Event('resize'));
+          rfb.focus();
+        } catch {
+          /* ignore */
+        }
+      });
       rfb.addEventListener('disconnect', (e: CustomEvent) => {
         setConnectionState('disconnected');
+        connectingRef.current = false;
         if (!e.detail?.clean) setError('Connection to VNC server lost');
         rfbRef.current = null;
       });
@@ -127,6 +178,7 @@ export function ConsolePage() {
       });
       rfb.addEventListener('securityfailure', (e: CustomEvent) => {
         setConnectionState('error');
+        connectingRef.current = false;
         setError(`Security error: ${e.detail?.reason ?? 'Unknown'}`);
       });
       rfb.addEventListener('desktopname', (e: CustomEvent) => {
@@ -135,6 +187,7 @@ export function ConsolePage() {
 
       rfbRef.current = rfb;
     } catch (err: unknown) {
+      connectingRef.current = false;
       setConnectionState('error');
       const msg =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
@@ -143,17 +196,33 @@ export function ConsolePage() {
     }
   }, [tenantId, vmId]);
 
+  // Connect once when ready — do not tear down on every render/identity change
   useEffect(() => {
     if (!bootstrapped || !isAuthenticated || !tenantId || !vmId) return;
-    const t = setTimeout(connectVNC, 150);
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled) void connectVNC();
+    }, 250);
     return () => {
-      clearTimeout(t);
-      if (rfbRef.current) {
-        rfbRef.current.disconnect();
-        rfbRef.current = null;
-      }
+      cancelled = true;
+      clearTimeout(timer);
     };
   }, [bootstrapped, isAuthenticated, tenantId, vmId, connectVNC]);
+
+  // Disconnect only on real unmount
+  useEffect(() => {
+    return () => {
+      if (rfbRef.current) {
+        try {
+          rfbRef.current.disconnect();
+        } catch {
+          /* ignore */
+        }
+        rfbRef.current = null;
+      }
+      connectingRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onFs = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -183,10 +252,21 @@ export function ConsolePage() {
     window.close();
   };
 
-  if (!bootstrapped || authLoading) {
+  if (!bootstrapped) {
     return (
-      <div className="h-screen w-screen bg-black flex items-center justify-center">
-        <p className="text-sm text-gray-400 animate-pulse">Loading console…</p>
+      <div
+        style={{
+          height: '100vh',
+          width: '100vw',
+          background: '#111827',
+          color: '#d1d5db',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'system-ui, sans-serif',
+        }}
+      >
+        Loading console…
       </div>
     );
   }
@@ -210,8 +290,15 @@ export function ConsolePage() {
   };
 
   return (
-    <div id="console-container" className="flex flex-col h-screen w-screen bg-black overflow-hidden">
-      <div className="flex items-center justify-between bg-gray-900 px-4 py-2 shrink-0">
+    <div
+      id="console-container"
+      className="flex flex-col bg-black overflow-hidden"
+      style={{ height: '100vh', width: '100vw' }}
+    >
+      <div
+        className="flex items-center justify-between px-4 py-2 shrink-0"
+        style={{ background: '#111827', minHeight: 44 }}
+      >
         <div className="flex items-center gap-3 min-w-0">
           <ComputerDesktopIcon className="h-5 w-5 text-primary-400 shrink-0" />
           <span className="text-sm text-white font-medium truncate">
@@ -243,7 +330,10 @@ export function ConsolePage() {
           )}
           {(connectionState === 'disconnected' || connectionState === 'error') && (
             <button
-              onClick={connectVNC}
+              onClick={() => {
+                connectingRef.current = false;
+                void connectVNC();
+              }}
               className="text-xs bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded transition-colors"
             >
               Reconnect
@@ -266,9 +356,11 @@ export function ConsolePage() {
         </div>
       </div>
 
-      <div ref={canvasRef} className="flex-1 bg-black overflow-hidden relative min-h-0">
+      <div className="flex-1 bg-black overflow-hidden relative min-h-0" style={{ minHeight: 200 }}>
+        <div ref={wrapperRef} className="absolute inset-0" />
+
         {connectionState === 'connecting' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10 pointer-events-none">
             <div className="text-center">
               <svg className="animate-spin h-8 w-8 text-primary-500 mx-auto mb-3" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -285,7 +377,13 @@ export function ConsolePage() {
               <SignalSlashIcon className="h-12 w-12 text-red-500 mx-auto mb-3" />
               <p className="text-sm text-red-400 font-medium mb-2">Connection error</p>
               <p className="text-xs text-gray-500 mb-4">{error}</p>
-              <button onClick={connectVNC} className="btn-primary text-sm">
+              <button
+                onClick={() => {
+                  connectingRef.current = false;
+                  void connectVNC();
+                }}
+                className="btn-primary text-sm"
+              >
                 Reconnect
               </button>
             </div>
@@ -297,7 +395,13 @@ export function ConsolePage() {
             <div className="text-center">
               <ComputerDesktopIcon className="h-12 w-12 text-gray-600 mx-auto mb-3" />
               <p className="text-sm text-gray-400 mb-4">Connection disconnected</p>
-              <button onClick={connectVNC} className="btn-primary text-sm">
+              <button
+                onClick={() => {
+                  connectingRef.current = false;
+                  void connectVNC();
+                }}
+                className="btn-primary text-sm"
+              >
                 Reconnect
               </button>
             </div>
