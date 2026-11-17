@@ -196,13 +196,11 @@ export function TenantsPage() {
     }
   };
 
-  const selectableIps = [
-    ...assignedPublicIps,
-    ...availablePublicIps.filter((a) => !selectedPublicIpIds.includes(a.id)),
-  ];
-  // de-dupe by id
-  const ipOptions = Array.from(new Map(selectableIps.map((a) => [a.id, a])).values())
-    .sort((a, b) => a.ip_address.localeCompare(b.ip_address, undefined, { numeric: true }));
+  // Always keep free + currently assigned IPs visible so checkboxes can be toggled
+  // (previously selected free IPs were filtered out and vanished from the list).
+  const ipOptions = Array.from(
+    new Map([...assignedPublicIps, ...availablePublicIps].map((a) => [a.id, a])).values(),
+  ).sort((a, b) => a.ip_address.localeCompare(b.ip_address, undefined, { numeric: true }));
 
   return (
     <div>
@@ -302,7 +300,7 @@ export function TenantsPage() {
                 Public IPs ({selectedPublicIpIds.length} selected)
               </label>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Select the exact public IPs this tenant may use. The tenant only sees these IPs — not the whole pool.
+                Check to assign, uncheck to remove. IPs stay in the list until you save. The tenant only sees assigned IPs — not the whole pool. IPs in use on a VM cannot be removed.
               </p>
               {ipOptions.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">No free public IPs in the platform pool.</p>
@@ -315,7 +313,11 @@ export function TenantsPage() {
                       <label
                         key={ip.id}
                         className={`flex items-center gap-2 text-sm rounded px-2 py-1.5 cursor-pointer ${
-                          locked ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'
+                          locked
+                            ? 'opacity-70 cursor-not-allowed'
+                            : checked
+                              ? 'bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100/80 dark:hover:bg-primary-900/30'
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'
                         }`}
                       >
                         <input
