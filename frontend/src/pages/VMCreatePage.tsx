@@ -638,6 +638,19 @@ export function VMCreatePage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
               <textarea name="description" value={form.description} onChange={handleChange} className="input-field" rows={2} />
             </div>
+            <div className="md:col-span-2">
+              <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                <input
+                  name="start_after_create"
+                  type="checkbox"
+                  checked={form.start_after_create}
+                  onChange={handleChange}
+                  className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                />
+                <span className="font-medium">VM boot</span>
+                <span className="text-xs text-gray-400">Start VM after create (default on)</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -1089,26 +1102,13 @@ export function VMCreatePage() {
         )}
 
         {/* Submit */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-            <input
-              name="start_after_create"
-              type="checkbox"
-              checked={form.start_after_create}
-              onChange={handleChange}
-              className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
-            />
-            <span>VM boot</span>
-            <span className="text-xs text-gray-400">(start after create)</span>
-          </label>
-          <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => navigate('/vms')} className="btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting} className="btn-primary disabled:opacity-50">
-              {isSubmitting ? 'Creating...' : 'Create VM'}
-            </button>
-          </div>
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={() => navigate('/vms')} className="btn-secondary">
+            Cancel
+          </button>
+          <button type="submit" disabled={isSubmitting} className="btn-primary disabled:opacity-50">
+            {isSubmitting ? 'Creating...' : 'Create VM'}
+          </button>
         </div>
       </form>
     </div>
