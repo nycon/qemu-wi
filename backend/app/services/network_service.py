@@ -184,6 +184,25 @@ async def assert_pool_usable_for_tenant(
 
 async def list_unassigned_public_ips(db: AsyncSession) -> list[IPAllocation]:
     """Globally free public IPs (AVAILABLE, no tenant)."""
+    # Heal soft-delete leaks: AVAILABLE + leftover tenant_id made IPs invisible.
+    stale = (
+        await db.execute(
+            select(IPAllocation)
+            .join(IPPool, IPPool.id == IPAllocation.pool_id)
+            .where(
+                IPPool.pool_type == PoolType.EXTERNAL,
+                IPAllocation.status == AllocationStatus.AVAILABLE,
+                IPAllocation.tenant_id.is_not(None),
+                IPAllocation.vm_id.is_(None),
+            )
+        )
+    ).scalars().all()
+    if stale:
+        for alloc in stale:
+            alloc.tenant_id = None
+            db.add(alloc)
+        await db.flush()
+
     result = await db.execute(
         select(IPAllocation)
         .join(IPPool, IPPool.id == IPAllocation.pool_id)

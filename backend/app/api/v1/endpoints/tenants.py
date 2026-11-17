@@ -18,6 +18,7 @@ from app.core.dependencies import (
     get_current_user,
     require_superadmin,
 )
+from app.models.network import AllocationStatus, IPAllocation, IPPool, PoolType
 from app.models.tenant import Project, Tenant
 from app.models.user import TenantUser, User, UserRole
 from app.schemas.tenant import (
@@ -294,6 +295,27 @@ async def delete_tenant(
     for project in projects:
         project.is_active = False
         db.add(project)
+
+    # Release public IPs not currently on a VM so they reappear in the free pool.
+    # (Previously soft-delete left tenant_id set while status=available → IP invisible.)
+    public_allocs = (
+        await db.execute(
+            select(IPAllocation)
+            .join(IPPool, IPPool.id == IPAllocation.pool_id)
+            .where(
+                IPPool.pool_type == PoolType.EXTERNAL,
+                IPAllocation.tenant_id == tenant_id,
+                IPAllocation.status.in_(
+                    [AllocationStatus.AVAILABLE, AllocationStatus.RESERVED]
+                ),
+            )
+        )
+    ).scalars().all()
+    for alloc in public_allocs:
+        alloc.status = AllocationStatus.AVAILABLE
+        alloc.tenant_id = None
+        alloc.vm_id = None
+        db.add(alloc)
 
     await create_audit_log(
         db,
