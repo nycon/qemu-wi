@@ -148,10 +148,13 @@ def task_vm_create(self, vm_id: str, task_id: str):
         template_format = template.format.value if hasattr(template.format, "value") else str(template.format)
         is_iso_install = template_format == "iso"
         install_options = {}
+        start_after_create = True
         if isinstance(vm.cloud_init_metadata, dict):
             raw_opts = vm.cloud_init_metadata.get("_install_options")
             if isinstance(raw_opts, dict):
                 install_options = raw_opts
+            if "_start_after_create" in vm.cloud_init_metadata:
+                start_after_create = bool(vm.cloud_init_metadata.get("_start_after_create"))
 
         guest_ip = None
         if isinstance(vm.cloud_init_network, dict):
@@ -183,6 +186,7 @@ def task_vm_create(self, vm_id: str, task_id: str):
             "cloud_init_userdata": vm.cloud_init_userdata or {},
             "cloud_init_metadata": vm.cloud_init_metadata or {},
             "cloud_init_network": vm.cloud_init_network,
+            "start_after_create": start_after_create,
         }
 
         # Include custom storage path if a non-default pool is assigned
@@ -203,7 +207,10 @@ def task_vm_create(self, vm_id: str, task_id: str):
 
         # Success – update VM and Task
         data = result.get("data", {})
-        vm.status = VMStatus.RUNNING
+        started = data.get("started")
+        if started is None:
+            started = start_after_create
+        vm.status = VMStatus.RUNNING if started else VMStatus.STOPPED
         if data.get("vnc_port"):
             vm.vnc_port = data["vnc_port"]
         if data.get("disk_path"):

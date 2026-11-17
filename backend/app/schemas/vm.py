@@ -94,6 +94,9 @@ class VMCreate(BaseModel):
     # Storage
     storage_pool_id: uuid.UUID | None = None
 
+    # Lifecycle: start guest after provisioning (default on)
+    start_after_create: bool = True
+
     # Cloud-Init
     cloud_init_identity: CloudInitIdentity
     cloud_init_network: CloudInitNetworkV2 | None = None

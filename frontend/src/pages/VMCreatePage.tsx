@@ -121,6 +121,7 @@ export function VMCreatePage() {
     keyboard_layout: 'de',
     locale: '',
     custom_userdata_yaml: '',
+    start_after_create: true,
   });
 
   useEffect(() => {
@@ -364,6 +365,7 @@ export function VMCreatePage() {
         vcpus: form.vcpus,
         ram_mb: form.ram_mb,
         disk_size_gb: form.disk_size_gb,
+        start_after_create: form.start_after_create,
         // Backend schema still expects identity; keep minimal for ISO/Windows.
         cloud_init_identity: isCloudInstall
           ? {
@@ -1087,13 +1089,26 @@ export function VMCreatePage() {
         )}
 
         {/* Submit */}
-        <div className="flex justify-end gap-3">
-          <button type="button" onClick={() => navigate('/vms')} className="btn-secondary">
-            Cancel
-          </button>
-          <button type="submit" disabled={isSubmitting} className="btn-primary disabled:opacity-50">
-            {isSubmitting ? 'Creating...' : 'Create VM'}
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+            <input
+              name="start_after_create"
+              type="checkbox"
+              checked={form.start_after_create}
+              onChange={handleChange}
+              className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+            />
+            <span>VM boot</span>
+            <span className="text-xs text-gray-400">(start after create)</span>
+          </label>
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={() => navigate('/vms')} className="btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting} className="btn-primary disabled:opacity-50">
+              {isSubmitting ? 'Creating...' : 'Create VM'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

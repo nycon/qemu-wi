@@ -561,6 +561,7 @@ async def create_vm(
     cloud_init_metadata = {
         "instance-id": str(uuid.uuid4()),
         "local-hostname": ci_identity.hostname,
+        "_start_after_create": bool(body.start_after_create),
     }
     if is_iso_install:
         cloud_init_metadata["_install_options"] = {

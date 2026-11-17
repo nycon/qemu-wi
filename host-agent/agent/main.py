@@ -219,6 +219,7 @@ class VMProvisionRequest(BaseModel):
     cloud_init_metadata: dict | None = None
     cloud_init_network: dict | None = None
     storage_base_path: str | None = None  # Custom storage pool path
+    start_after_create: bool = True
 
 
 class VMActionResponse(BaseModel):
@@ -299,7 +300,7 @@ async def provision_vm(
     1. Clone base image OR create empty disk (ISO mode)
     2. Create Cloud-Init seed
     3. Define libvirt domain
-    4. Start VM
+    4. Optionally start VM (start_after_create, default true)
     """
     try:
         from services.path_security import assert_safe_id, resolve_under_allowlist
@@ -413,11 +414,14 @@ async def provision_vm(
                 hostname=body.domain_name,
             )
 
-        # Step 4: Start VM
-        # Keep ISO attached for the first installation boot.
-        libvirt_svc.start_vm(body.domain_name, skip_iso_autoeject=True)
+        # Step 4: Optionally start VM
+        started = False
+        if body.start_after_create:
+            # Keep ISO attached for the first installation boot.
+            libvirt_svc.start_vm(body.domain_name, skip_iso_autoeject=True)
+            started = True
 
-        # Get VNC port
+        # Get VNC port (available once defined; useful after later start)
         vnc_port = libvirt_svc.get_vm_vnc_port(body.domain_name)
 
         # Save VNC mapping for WebSocket proxy
@@ -426,12 +430,17 @@ async def provision_vm(
 
         return VMActionResponse(
             status="success",
-            message=f"VM {body.domain_name} successfully created and started",
+            message=(
+                f"VM {body.domain_name} successfully created and started"
+                if started
+                else f"VM {body.domain_name} successfully created (not started)"
+            ),
             data={
                 "domain_uuid": domain_uuid,
                 "disk_path": disk_path,
                 "seed_path": seed_path,
                 "vnc_port": vnc_port,
+                "started": started,
             },
         )
 
