@@ -275,7 +275,7 @@ docker compose exec -T -e ADMIN_PASSWORD="Admin123!" backend python -m scripts.s
 
 **Cause** (by design):
 - The panel does **not** auto-create a default NAT network for new tenants.
-- Public addresses appear only after a superadmin assigns concrete reserved IPs (**Admin → Tenants** or `qemu-cli tenant assign-public-ips`).
+- Public addresses appear only after a superadmin assigns concrete reserved IPs (**Admin → Tenants** or `qcli tenant assign-public-ips`).
 
 **Fix**:
 1. Superadmin: **Admin → Public IPs** (external pool) → assign IPs under **Admin → Tenants**.

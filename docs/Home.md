@@ -12,7 +12,7 @@ A complete web-based management platform for QEMU/KVM virtual machines with mult
 | [Backups](Backups.md) | Live VM backups, FTP/S3 storage, DB dumps, schedules |
 | [Cloud Images](Cloud-Images.md) | Recommended Ubuntu/Debian download URLs and how to import them |
 | [Hetzner Dedicated Bridging](Hetzner-Dedicated-Bridging.md) | Step-by-step `br0` setup with vSwitch + additional subnet |
-| [CLI](CLI.md) | qemu-cli installation, contexts, commands, output formats |
+| [CLI](CLI.md) | qcli installation, contexts, commands, output formats |
 | [API Reference](API-Reference.md) | Backend REST API endpoints |
 | [Host Agent](Host-Agent.md) | Host Agent API and functionality |
 | [Security](Security.md) | Firewall, egress filtering, authentication, hardening |
@@ -64,4 +64,4 @@ sudo bash install.sh
 - **SSL/TLS** – Automatic Let's Encrypt or custom certificate support
 - **Monitoring** – Real-time VM stats (CPU, RAM, disk, network I/O) via qemu-guest-agent
 - **Task System** – Async task execution with progress tracking
-- **CLI** – [`qemu-cli`](CLI.md) (≥ 1.1.0) for VMs, tenant networks, public IPs, and admin IP assignment
+- **CLI** – [`qcli`](CLI.md) (≥ 1.2.0) for VMs, tenant networks, public IPs, and admin IP assignment

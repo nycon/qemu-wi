@@ -16,7 +16,7 @@ Official docs for the open-source QEMU/KVM management panel.
 | [Backups](Backups.md) | Live VM backups, FTP/S3, DB dumps |
 | [Cloud Images](Cloud-Images.md) | Recommended images and import |
 | [Hetzner Dedicated Bridging](Hetzner-Dedicated-Bridging.md) | Public IP bridging |
-| [CLI](CLI.md) | `qemu-cli` (≥ 1.1.0: networks, public IPs) |
+| [CLI](CLI.md) | `qcli` (≥ 1.2.0: networks, public IPs) |
 | [API Reference](API-Reference.md) | REST endpoints |
 | [Host Agent](Host-Agent.md) | Host-side agent API |
 | [Security](Security.md) | Hardening and auth |

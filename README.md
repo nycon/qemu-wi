@@ -455,25 +455,25 @@ cat /var/log/qemu-interface-install.log
 
 ## CLI Tool
 
-The official CLI lives in a separate repository: [`nycon/qemu-cli`](https://github.com/nycon/qemu-cli) (**≥ 1.1.0** for networks / public IPs). API keys: **User Profile → API Keys**.
+The official CLI lives in a separate repository: [`nycon/qcli`](https://github.com/nycon/qcli) (**≥ 1.2.0** for networks / public IPs). API keys: **User Profile → API Keys**.
 
 ```bash
-# Prebuilt: https://github.com/nycon/qemu-cli/releases
-git clone https://github.com/nycon/qemu-cli.git
-cd qemu-cli && make install
+# Prebuilt: https://github.com/nycon/qcli/releases
+git clone https://github.com/nycon/qcli.git
+cd qcli && make install
 
-qemu-cli context create production \
+qcli context create production \
   --url https://panel.example.com \
   --token qi_your_api_key
 
-qemu-cli tenant use Default
-qemu-cli network create web-dmz --type nat
-qemu-cli tenant public-ips
-qemu-cli vm create web1 --image "Ubuntu 24.04" --project <uuid> --public-ip 159.69.172.28 --random-password
-qemu-cli vm list
+qcli tenant use Default
+qcli network create web-dmz --type nat
+qcli tenant public-ips
+qcli vm create web1 --image "Ubuntu 24.04" --project <uuid> --public-ip 159.69.172.28 --random-password
+qcli vm list
 ```
 
-Details: [`docs/CLI.md`](docs/CLI.md) and the [qemu-cli README](https://github.com/nycon/qemu-cli#readme).
+Details: [`docs/CLI.md`](docs/CLI.md) and the [qcli README](https://github.com/nycon/qcli#readme).
 
 ## Project Structure
 
@@ -727,7 +727,7 @@ curl -H "X-API-Key: qi_abc123..." \
 | [Security](https://github.com/nycon/qemu-wi/wiki/Security) | Firewall, egress filtering, hardening |
 | [Troubleshooting](https://github.com/nycon/qemu-wi/wiki/Troubleshooting) | Common errors and solutions |
 | [Development](https://github.com/nycon/qemu-wi/wiki/Development) | Local setup, code structure, patterns |
-| [CLI](https://github.com/nycon/qemu-wi/wiki/CLI) | `qemu-cli` usage |
+| [CLI](https://github.com/nycon/qemu-wi/wiki/CLI) | `qcli` usage |
 
 ## Security reports
 
